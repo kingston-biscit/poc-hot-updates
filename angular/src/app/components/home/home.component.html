@@ -1,30 +1,30 @@
 <section class="card">
-      <h2>OTA Update Demo test</h2>
+  <h2>OTA Update Demo test</h2>
 
-      <p>
-        Current bundle version:
-        <strong>{{ currentVersion() }}</strong>
-      </p>
+  <h3>I'm a custom feature the customer wanted delivered asap</h3>
 
-      <button (click)="check()" [disabled]="checking()">
-        {{ checking() ? 'Checking…' : 'Check for updates' }}
-      </button>
+  <p>
+    Current bundle version:
+    <strong>{{ currentVersion() }}</strong>
+  </p>
 
-      <div *ngIf="availableVersion()" class="update-box">
-        <p>
-          New version available:
-          <strong>{{ availableVersion() }}</strong>
-        </p>
-        <button (click)="install()" [disabled]="installing()">
-          {{ installing() ? 'Installing…' : 'Install update' }}
-        </button>
-      </div>
+  <button (click)="check()" [disabled]="checking()">
+    {{ checking() ? 'Checking…' : 'Check for updates' }}
+  </button>
 
-      <p *ngIf="!availableVersion() && !checking() && !errorShown()">
-        No updates available.
-      </p>
+  <div *ngIf="availableVersion()" class="update-box">
+    <p>
+      New version available:
+      <strong>{{ availableVersion() }}</strong>
+    </p>
+    <button (click)="install()" [disabled]="installing()">
+      {{ installing() ? 'Installing…' : 'Install update' }}
+    </button>
+  </div>
 
-      <p *ngIf="errorShown()" class="error">
-        {{ errorShown() }}
-      </p>
-    </section>
+  <p *ngIf="!availableVersion() && !checking() && !errorShown()">No updates available.</p>
+
+  <p *ngIf="errorShown()" class="error">
+    {{ errorShown() }}
+  </p>
+</section>

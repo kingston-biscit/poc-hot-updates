@@ -21,8 +21,39 @@ console.log(`Creating OTA bundle for version ${version}`);
 fs.rmSync(dest, { recursive: true, force: true });
 fs.mkdirSync(dest, { recursive: true });
 
+// Copy Angular build output
 for (const entry of fs.readdirSync(src)) {
   fs.cpSync(path.join(src, entry), path.join(dest, entry), { recursive: true });
 }
 
 console.log(`OTA bundle ${version} copied to ${dest}`);
+
+// ---- ADD THIS PART BELOW ----
+
+// Include Cordova runtime so OTA bundles can run Cordova APIs too
+const platformWww = path.join(
+  __dirname,
+  "..",
+  "cordova",
+  "platforms",
+  "android",
+  "platform_www"
+);
+
+function copyIfExists(name) {
+  const from = path.join(platformWww, name);
+  if (fs.existsSync(from)) {
+    fs.cpSync(from, path.join(dest, name), { recursive: true });
+    console.log(`Included ${name} in OTA bundle`);
+  } else {
+    console.warn(`Skipped ${name} (not found in ${platformWww})`);
+  }
+}
+
+copyIfExists("cordova.js");
+copyIfExists("cordova_plugins.js");
+copyIfExists("plugins");
+
+console.log(
+  `[OTA] Cordova runtime added (if available). Bundle ready at ${dest}`
+);

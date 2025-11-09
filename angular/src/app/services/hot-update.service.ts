@@ -70,8 +70,20 @@ export class HotUpdateService {
 
     try {
       const indexPath = await downloadBundle(this.pendingManifest);
-      localStorage.setItem('ota:active', indexPath);
-      window.location.replace(indexPath);
+
+      // downloadBundle wrote ota-state.json already
+      localStorage.removeItem('ota:pending');
+
+      console.log('[OTA] Update staged at', indexPath);
+
+      alert('Update installed. The app will restart to apply it.');
+
+      const w = window as any;
+      if (w.navigator && w.navigator.app && typeof w.navigator.app.exitApp === 'function') {
+        w.navigator.app.exitApp();
+      } else {
+        console.log('[OTA] Please close and reopen the app to apply the update.');
+      }
     } catch (e: any) {
       this._error.set('Install failed: ' + (e?.message || e));
       console.error('[OTA] install failed', e);

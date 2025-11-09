@@ -24,8 +24,7 @@ export async function downloadBundle(manifest: OtaManifest): Promise<string> {
   const w = window as Window;
   const version = manifest.latestVersion;
   const baseUrl = manifest.bundleUrl.replace(/\/+$/, '') + '/';
-  const dataDir: string = w.cordova.file.dataDirectory;
-
+  const dataDir: string = (w as any).cordova.file.dataDirectory;
   const bundleRoot = dataDir + 'bundles/' + version + '/';
 
   console.log('[OTA] Downloading bundle', version, 'to', bundleRoot);
@@ -39,13 +38,15 @@ export async function downloadBundle(manifest: OtaManifest): Promise<string> {
     const dir = targetPath.substring(0, targetPath.lastIndexOf('/') + 1);
     await ensureDir(dir);
 
-    // Use advanced-http for reliability
     const data = await httpGetArrayBuffer(url);
     await writeFile(targetPath, data);
   }
 
   const indexFileUrl = await getCdvUrl(bundleRoot + 'index.html');
   console.log('[OTA] Bundle downloaded. Entry:', indexFileUrl);
+
+  await writeOtaState(indexFileUrl);
+
   return indexFileUrl;
 }
 
@@ -149,6 +150,47 @@ function writeFile(pathUrl: string, data: ArrayBuffer): Promise<void> {
               writer.onerror = reject;
 
               const blob = new Blob([data]);
+              writer.write(blob);
+            }, reject);
+          },
+          reject
+        );
+      },
+      reject
+    );
+  });
+}
+
+function writeOtaState(activeUrl: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const w = window as any;
+    if (!w.cordova || !w.cordova.file || !w.resolveLocalFileSystemURL) {
+      console.warn('[OTA] writeOtaState: Cordova/File not available');
+      return resolve(); // don't hard fail; the bundle is still downloaded
+    }
+
+    const dataDir = w.cordova.file.dataDirectory;
+
+    w.resolveLocalFileSystemURL(
+      dataDir,
+      function (dirEntry: any) {
+        dirEntry.getFile(
+          'ota-state.json',
+          { create: true },
+          function (fileEntry: any) {
+            fileEntry.createWriter(function (writer: any) {
+              writer.onwriteend = function () {
+                console.log('[OTA] ota-state.json written');
+                resolve();
+              };
+              writer.onerror = function (err: any) {
+                console.error('[OTA] ota-state.json write failed', err);
+                reject(err);
+              };
+
+              const blob = new Blob([JSON.stringify({ activeUrl }, null, 2)], {
+                type: 'application/json',
+              });
               writer.write(blob);
             }, reject);
           },

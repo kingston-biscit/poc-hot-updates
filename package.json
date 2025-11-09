@@ -1,0 +1,14 @@
+{
+  "name": "poc-root",
+  "private": true,
+  "scripts": {
+    "ng:build": "cd angular && npm run build",
+    "sync:www": "mkdir -p cordova/www && rm -rf cordova/www/* && cp -r angular/dist/angular/browser/* cordova/www/",
+    "cordova:build:android": "npm run ng:build && npm run sync:www && cd cordova && cordova build android",
+    "cordova:run:android": "npm run ng:build && npm run sync:www && cd cordova && cordova run android",
+    "ota:bump": "node scripts/ota-bump.cjs",
+    "ota:bundle": "npm run ng:build && node scripts/copy-ota-bundle.cjs",
+    "ota:release": "npm run ota:bump && npm run ota:bundle",
+    "ota:serve": "cd server && npm run dev"
+  }
+}
